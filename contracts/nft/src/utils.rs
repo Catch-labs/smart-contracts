@@ -1,4 +1,4 @@
-use crate::Contract;
+use crate::*;
 
 #[macro_export]
 macro_rules! require {
@@ -7,32 +7,33 @@ macro_rules! require {
             near_sdk::env::panic($b.as_bytes());
         }
     };
-}
+} // Player account_id format = username.catchlabs.near
 
-pub(crate) fn is_valid_username(username: &str) -> bool {
-    for i in 0_u8..9_u8 {
-        require!(
-            username.starts_with(&i.to_string()),
-            "Username can not start with a digit"
-        );
+pub(crate) fn is_catch_player(account_id: AccountId) -> bool {
+    let mut split = account_id.split(".");
+
+    split.next(); // emit username
+
+    match &split.next().unwrap()[..] {
+        "catchlabs" => {}
+        _ => return false,
     }
 
-    for c in username.as_bytes() {
-        match c {
-            b'-' | b'_' | b'.' => return false,
-            _ => (),
-        }
-    }
+    split.next(); //  emit .near | .testnet
 
-    // ToDo -> Also check if the prefix is not a reserved keyword like users,settings,dao.....
-    return true;
+    if split.next() == None {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 impl Contract {
+    /// Assert that Predecessor A/c is the Owner of the Contract
     pub fn assert_owner(&self) {
         require!(
             near_sdk::env::predecessor_account_id() == self.owner_id,
-            "Only Owner of the Contract can call this method"
+            "It is a owner only method"
         );
     }
 }
@@ -42,7 +43,7 @@ impl Contract {
 pub mod test_utils {
 
     use crate::*;
-    use near_sdk::json_types::Base64VecU8;
+    use near_sdk::json_types::ValidAccountId;
     use near_sdk::Balance;
     use near_sdk::VMContext;
 
@@ -57,18 +58,18 @@ pub mod test_utils {
     pub fn carol() -> ValidAccountId {
         ValidAccountId::try_from("carol.near").unwrap()
     }
-    pub fn dex() -> ValidAccountId {
-        ValidAccountId::try_from("dex.near").unwrap()
-    }
     pub fn nft() -> ValidAccountId {
         ValidAccountId::try_from("nft.catchlabs.near").unwrap()
+    }
+    pub fn marketplace() -> ValidAccountId {
+        ValidAccountId::try_from("marketplace.near").unwrap()
     }
 
     pub fn get_context(predecessor_account_id: AccountId, attached_deposit: Balance) -> VMContext {
         VMContext {
-            current_account_id: "mike.near".to_string(),
+            current_account_id: "nft.catchlabs.near".to_string(),
             signer_account_id: predecessor_account_id.clone(),
-            signer_account_pk: vec![0, 1, 2],
+            signer_account_pk: vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
             predecessor_account_id,
             input: vec![],
             block_index: 0,
@@ -86,18 +87,6 @@ pub mod test_utils {
     }
 
     pub fn create_contract() -> Contract {
-        let metadata = FungibleTokenMetadata {
-            spec: String::from("1.1.0"),
-            name: String::from("CAT Token"),
-            symbol: String::from("CAT"),
-            icon: String::from("C-A-T-C-H"),
-            reference: String::from(
-                "https://github.com/near/core-contracts/tree/master/w-near-141",
-            ),
-            reference_hash: Base64VecU8::from([5_u8; 32].to_vec()),
-            decimals: 0,
-        };
-        let total_supply = U128::from(1_000_000_000_000_000);
-        Contract::new(dex(), total_supply, metadata)
+        todo!()
     }
 }

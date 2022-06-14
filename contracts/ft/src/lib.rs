@@ -36,7 +36,7 @@ use near_sdk::collections::{LazyOption, LookupMap, Vector};
 use near_sdk::json_types::{Base58PublicKey, Base64VecU8, ValidAccountId, U128};
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::{
-    assert_one_yocto, assert_self, env, ext_contract, log, near_bindgen, AccountId, Balance, Gas,
+    assert_one_yocto, env, ext_contract, log, near_bindgen, AccountId, Balance, Gas,
     PanicOnDefault, Promise, PromiseOrValue, PromiseResult, StorageUsage,
 };
 
@@ -151,7 +151,7 @@ impl Contract {
     /// Resolving Transaction after on_transfer is called on recieving contract
     ///
     /// Refunds and returns the unused tokens
-    /// Private fn
+    #[private]
     pub fn ft_resolve_transfer(
         &mut self,
         sender_id: AccountId,
@@ -174,8 +174,8 @@ impl Contract {
     }
 
     /// Create Sub Accounts for user and registers them with ft contract, if already registered leaves it unchanged
-    ///
-    /// Also this assumes that there will be enough near for account creation in the contract, this can be ensured and even panic won't cause any issues
+    /// [Doing it based on assumption for Optimisation reasons]
+    /// Also this assumes that there will be enough Near for account creation and storage in the contract, this can be ensured and even panic won't cause any issues [Reason: Optimisation]
     pub fn create_user_account(
         &mut self,
         username: ValidAccountId,
