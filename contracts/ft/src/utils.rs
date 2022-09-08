@@ -9,18 +9,6 @@ macro_rules! require {
     };
 }
 
-pub(crate) fn is_valid_username(username: &str) -> bool {
-    for c in username.as_bytes() {
-        match c {
-            b'-' | b'_' | b'.' => return false,
-            _ => (),
-        }
-    }
-
-    // ToDo -> Also check if the prefix is not a reserved keyword like users,settings,dao.....
-    return true;
-}
-
 impl Contract {
     pub fn assert_owner(&self) {
         require!(

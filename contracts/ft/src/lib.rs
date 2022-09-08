@@ -6,7 +6,6 @@
  * lib.rs is the main entry point.
  * core_impl.rs implements NEP-141 standard
  * storage_impl.rs implements NEP-145 standard for allocating storage per account
- * catch_game.rs implements Objectuve and Reward Functionality for users
  * ft_metadata.rs implements NEP-148 standard for providing token-specific metadata.
  * events.rs extends NEP-297 for better indexing
  * internal.rs contains internal methods for fungible token core.
@@ -20,39 +19,29 @@ mod resolver;
 mod storage_impl;
 mod utils;
 
-mod catch_game;
-
-pub use crate::catch_game::CatchObjectives;
 pub use crate::core_impl::{FungibleToken, FungibleTokenCore};
 pub use crate::events::{FtBurnLog, FtMintLog, FtTransferLog};
 pub use crate::ft_metadata::FungibleTokenMetadata;
 pub use crate::receiver::ext_fungible_token_receiver;
 pub use crate::resolver::{ext_self, FungibleTokenResolver};
 pub use crate::storage_impl::StorageManager;
-use crate::utils::is_valid_username;
 
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::collections::{LazyOption, LookupMap, Vector};
-use near_sdk::json_types::{Base58PublicKey, Base64VecU8, ValidAccountId, U128};
+use near_sdk::collections::{LazyOption, LookupMap};
+use near_sdk::json_types::{Base64VecU8, ValidAccountId, U128};
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::{
-    assert_one_yocto, assert_self, env, ext_contract, log, near_bindgen, AccountId, Balance, Gas,
+    assert_one_yocto, env, ext_contract, log, near_bindgen, AccountId, Balance, Gas,
     PanicOnDefault, Promise, PromiseOrValue, PromiseResult, StorageUsage,
 };
 
 #[global_allocator]
 static ALLOC: near_sdk::wee_alloc::WeeAlloc<'_> = near_sdk::wee_alloc::WeeAlloc::INIT;
 
-const BASE_STORAGE_COST: Balance = 4_000_000_000_000_000_000_000;
-
 #[derive(BorshSerialize)]
 pub enum StorageKey {
     Accounts,
     Metadata,
-    Objective,
-    ObjectiveStats,
-    ObjectiveMetadata,     // Lazy Option
-    ObjectiveMetadataList, // Vector
 }
 
 #[near_bindgen]
@@ -62,9 +51,6 @@ pub struct Contract {
 
     //// Fungible Token
     pub token: FungibleToken,
-
-    /// In Game Objectives
-    pub catch_objectives: CatchObjectives,
 
     /// The storage size in bytes for one account.
     pub account_storage_usage: StorageUsage,
@@ -92,15 +78,12 @@ impl Contract {
             total_supply: total_supply.into(),
         };
 
-        let catch_objectives = CatchObjectives::default();
-
         let ft_metadata =
             LazyOption::new(StorageKey::Metadata.try_to_vec().unwrap(), Some(&metadata));
 
         let mut this = Self {
             owner_id: owner_id.clone(),
             token,
-            catch_objectives,
             account_storage_usage: 0,
             ft_metadata,
         };
@@ -151,7 +134,7 @@ impl Contract {
     /// Resolving Transaction after on_transfer is called on recieving contract
     ///
     /// Refunds and returns the unused tokens
-    /// Private fn
+    #[private]
     pub fn ft_resolve_transfer(
         &mut self,
         sender_id: AccountId,
@@ -173,31 +156,6 @@ impl Contract {
         self.token.ft_balance_of(account_id.into())
     }
 
-    /// Create Sub Accounts for user and registers them with ft contract, if already registered leaves it unchanged
-    ///
-    /// Also this assumes that there will be enough near for account creation in the contract, this can be ensured and even panic won't cause any issues
-    pub fn create_user_account(
-        &mut self,
-        username: ValidAccountId,
-        player_public_key: Base58PublicKey,
-    ) {
-        self.assert_owner();
-
-        let username: String = username.into();
-
-        require!(is_valid_username(&username), "Invalid Username");
-
-        let subaccount = AccountId::from(format!("{}.{}", username, env::current_account_id()));
-
-        if !self.token.accounts.contains_key(&subaccount) {
-            self.token.accounts.insert(&subaccount, &0);
-        }
-
-        Promise::new(subaccount.clone())
-            .create_account()
-            .add_full_access_key(player_public_key.into())
-            .transfer(BASE_STORAGE_COST);
-    }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -261,17 +219,5 @@ mod ft_core_tests {
         let mut contract = create_contract();
         let amount = U128::from(100_000_000);
         contract.ft_transfer(carol(), amount, None);
-    }
-
-    #[test]
-    fn test_create_user_account() {
-        testing_env!(get_context(dex().to_string(), ONE_YOCTO));
-
-        let username = ValidAccountId::try_from("xyzusername").unwrap();
-        let player_public_key =
-            Base58PublicKey::try_from("3tysLvy7KGoE8pznUgXvSHa4vYyGvrDZFcT8jgb8PEQ6").unwrap();
-
-        let mut contract = create_contract();
-        contract.create_user_account(username, player_public_key);
     }
 }
