@@ -64,7 +64,7 @@ impl Contract {
     }
 }
 
-// TokenId and EventId can only contain Ascii Chars without . , it can contain a..=z , A..=Z, 0..=9, Space and Underscore and hyphen are also allowed but not fullstop
+/// TokenId and EventId can only contain Ascii Chars without . , it can contain a..=z , A..=Z, 0..=9, Space and Underscore and hyphen are also allowed but not fullstop
 pub(crate) fn assert_valid_id(id: &str) {
     require!(
         id.bytes()
@@ -73,7 +73,7 @@ pub(crate) fn assert_valid_id(id: &str) {
     );
 }
 
-// Resolve token_id of form event_id.token_id.owner_id to Full TokenId and OwnerId
+/// Resolve token_id of form event_id.token_id.owner_id to Full TokenId and OwnerId
 pub(crate) fn resolve_token_id(token_id: TokenId) -> (TokenId, AccountId) {
     let (event_id, token_id_and_owner_id) = token_id
         .split_once(".")
@@ -88,12 +88,12 @@ pub(crate) fn resolve_token_id(token_id: TokenId) -> (TokenId, AccountId) {
     return (token_id, owner_id.to_string());
 }
 
-// Build token_id of form event_id.token_id.owner_id from TokenId and OwnerId
+/// Build token_id of form event_id.token_id.owner_id from TokenId and OwnerId
 pub(crate) fn build_full_token_id(token_id: TokenId, owner_id: AccountId) -> TokenId {
     format!("{}.{}", token_id, owner_id)
 }
 
-// returns true if token has expired
+/// returns true if token has expired
 pub(crate) fn internal_is_token_expired(token: &Token) -> bool {
     if let Some(t) = token.expires_at {
         if let Some(t) = t.checked_mul(1_000_000) {
@@ -107,13 +107,33 @@ pub(crate) fn internal_is_token_expired(token: &Token) -> bool {
     }
 }
 
-// panics if token can't be minted
+/// panics if token can't be minted
 pub(crate) fn assert_token_availability(token: &Token) {
     require!(
         token.copies_minted < token.max_copies,
         "All the copies of this token have been minted"
     );
 }
+/// asserts that passed account ID is exactly of form valid_username.catch.near
+pub(crate) fn assert_valid_catch_user_account_pattern(account_id: &str) {
+    if let Some((username, catch_contract_id)) = account_id.split_once(".") {
+        require!(
+            username
+                .bytes()
+                .into_iter()
+                .all(|c| matches!(c, b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'_')),
+            "Invalid username passed"
+        );
+
+        require!(
+            catch_contract_id == env::current_account_id().as_str(),
+            "Invalid account ID passed"
+        );
+    } else {
+        env::panic(b"Invalid account ID passed");
+    }
+}
+
 
 #[cfg(not(target_arch = "wasm32"))]
 #[cfg(test)]

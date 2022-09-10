@@ -32,6 +32,8 @@ impl Contract {
         let event: Event;
         let organiser = env::predecessor_account_id();
 
+        assert_valid_catch_user_account_pattern(&organiser);
+
         assert_valid_id(&event_id);
 
         for token_info in tokens {
@@ -115,6 +117,8 @@ impl Contract {
         if self.tokens_per_owner.get(&account_id).is_none() {
             let storage_used = bytes_for_token_or_event_or_account_id(&account_id);
             refund_deposit(storage_used);
+        } else {
+            Promise::new(env::predecessor_account_id()).transfer(env::attached_deposit());
         }
 
         self.internal_add_token_to_owner(&account_id, &token_id);
@@ -130,6 +134,6 @@ impl Contract {
             )),
         }]);
 
-        todo!(); // Refund User if payed extra
+        // todo!(); // Refund User if payed extra
     }
 }
