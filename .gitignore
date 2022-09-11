@@ -1,2 +1,6 @@
 /contracts/ft/target
-/contracts/nft
+/contracts/nft/target
+/contracts/marketplace/target
+/contracts/ft/res/ft.wasm
+/contracts/nft/res/nft.wasm
+/contracts/marketplace/res/marketplace.wasm
