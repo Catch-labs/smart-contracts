@@ -148,54 +148,54 @@ impl Contract {
         )
     }
 
-    #[payable]
-    pub fn nft_mint(
-        &mut self,
-        receiver_id: AccountId,
-        token_id: TokenId,
-        token_metadata: TokenMetadata,
-        public_key: Base58PublicKey,
-    ) {
-        self.assert_owner();
+    // #[payable]
+    // pub fn nft_mint(
+    //     &mut self,
+    //     receiver_id: AccountId,
+    //     token_id: TokenId,
+    //     token_metadata: TokenMetadata,
+    //     public_key: Base58PublicKey,
+    // ) {
+    //     self.assert_owner();
 
-        let initial_storage = env::storage_usage();
+    //     let initial_storage = env::storage_usage();
 
-        assert_valid_catch_user_account_pattern(&receiver_id);
+    //     assert_valid_catch_user_account_pattern(&receiver_id);
 
-        Promise::new(receiver_id.clone())
-            .create_account()
-            .transfer(BASE_STORAGE_COST)
-            .add_full_access_key(public_key.into());
+    //     Promise::new(receiver_id.clone())
+    //         .create_account()
+    //         .transfer(BASE_STORAGE_COST)
+    //         .add_full_access_key(public_key.into());
 
-        let token = Token {
-            token_id: token_id.clone(),
-            copies_minted: 1,
-            max_copies: 1,
-            expires_at: token_metadata.expires_at,
-            token_dependency_by_id: vec![],
-            event_dependency_by_id: vec![],
-            account_approval_info_per_owner: LookupMap::new(
-                StorageKey::ApprovedAccountsPerToken {
-                    token_id_hash: hash_id(&token_id),
-                }
-                .try_to_vec()
-                .unwrap(),
-            ),
-        };
+    //     let token = Token {
+    //         token_id: token_id.clone(),
+    //         copies_minted: 1,
+    //         max_copies: 1,
+    //         expires_at: token_metadata.expires_at,
+    //         token_dependency_by_id: vec![],
+    //         event_dependency_by_id: vec![],
+    //         account_approval_info_per_owner: LookupMap::new(
+    //             StorageKey::ApprovedAccountsPerToken {
+    //                 token_id_hash: hash_id(&token_id),
+    //             }
+    //             .try_to_vec()
+    //             .unwrap(),
+    //         ),
+    //     };
 
-        require!(
-            self.tokens_by_id.insert(&token_id, &token).is_none(),
-            "Token Already exists"
-        );
+    //     require!(
+    //         self.tokens_by_id.insert(&token_id, &token).is_none(),
+    //         "Token Already exists"
+    //     );
 
-        self.token_metadata_by_id.insert(&token_id, &token_metadata);
+    //     self.token_metadata_by_id.insert(&token_id, &token_metadata);
 
-        self.internal_add_token_to_owner(&receiver_id, &token_id);
+    //     self.internal_add_token_to_owner(&receiver_id, &token_id);
 
-        // refunding deposit
-        let storage_used = env::storage_usage() - initial_storage;
-        let storage_cost = env::storage_byte_cost() * storage_used as u128;
-        let cost = storage_cost + BASE_STORAGE_COST;
-        Promise::new(receiver_id).transfer(env::attached_deposit() - cost);
-    }
+    //     // refunding deposit
+    //     let storage_used = env::storage_usage() - initial_storage;
+    //     let storage_cost = env::storage_byte_cost() * storage_used as u128;
+    //     let cost = storage_cost + BASE_STORAGE_COST;
+    //     Promise::new(receiver_id).transfer(env::attached_deposit() - cost);
+    // }
 }

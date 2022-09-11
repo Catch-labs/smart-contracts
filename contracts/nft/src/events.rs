@@ -32,7 +32,7 @@ impl Contract {
         let event: Event;
         let organiser = env::predecessor_account_id();
 
-        assert_valid_catch_user_account_pattern(&organiser);
+        // assert_valid_catch_user_account_pattern(&organiser);
 
         assert_valid_id(&event_id);
 
