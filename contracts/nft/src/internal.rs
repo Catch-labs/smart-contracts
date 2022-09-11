@@ -222,7 +222,7 @@ impl Contract {
             authorized_id,
             old_owner_id: owner_id.clone(),
             new_owner_id: receiver_id.to_string(),
-            token_id: vec![token_id],
+            token_ids: vec![token_id],
             memo,
         }];
 

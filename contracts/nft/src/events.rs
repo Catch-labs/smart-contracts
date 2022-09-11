@@ -127,7 +127,7 @@ impl Contract {
 
         NftMintLog::emit(vec![NftMintLog {
             owner_id: account_id.clone(),
-            token_id: vec![token_id],
+            token_ids: vec![token_id],
             memo: Some(format!(
                 "{} has successfully registered for the event {}",
                 &account_id, &event_id
