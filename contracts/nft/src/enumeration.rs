@@ -19,7 +19,7 @@ impl Contract {
             .keys()
             .skip(start as usize)
             .take(limit.unwrap_or(50) as usize)
-            .map(|token_id| self.nft_token_general(token_id.clone()).unwrap())
+            .map(|token_id| self.nft_token_by_id(token_id.clone()).unwrap())
             .collect()
     }
 
@@ -95,11 +95,12 @@ impl Contract {
 }
 
 impl Contract {
-    fn nft_token_general(&self, token_id: TokenId) -> Option<JsonTokenGeneral> {
+    fn nft_token_by_id(&self, token_id: TokenId) -> Option<JsonTokenGeneral> {
         if let Some(token) = self.tokens_by_id.get(&token_id) {
             let metadata = self.token_metadata_by_id.get(&token_id).unwrap();
             Some(JsonTokenGeneral {
                 token_id,
+                copies_minted: token.copies_minted,
                 metadata,
                 token_dependency_by_id: token.token_dependency_by_id,
                 event_dependency_by_id: token.event_dependency_by_id,

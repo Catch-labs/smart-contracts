@@ -114,25 +114,25 @@ pub(crate) fn assert_token_availability(token: &Token) {
         "All the copies of this token have been minted"
     );
 }
-/// asserts that passed account ID is exactly of form valid_username.catch.near
-pub(crate) fn assert_valid_catch_user_account_pattern(account_id: &str) {
-    if let Some((username, catch_contract_id)) = account_id.split_once(".") {
-        require!(
-            username
-                .bytes()
-                .into_iter()
-                .all(|c| matches!(c, b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'_')),
-            "Invalid username passed"
-        );
+// /// asserts that passed account ID is exactly of form valid_username.catch.near
+// pub(crate) fn assert_valid_catch_user_account_pattern(account_id: &str) {
+//     if let Some((username, catch_contract_id)) = account_id.split_once(".") {
+//         require!(
+//             username
+//                 .bytes()
+//                 .into_iter()
+//                 .all(|c| matches!(c, b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'_')),
+//             "Invalid username passed"
+//         );
 
-        require!(
-            catch_contract_id == env::current_account_id().as_str(),
-            "Invalid account ID passed"
-        );
-    } else {
-        env::panic(b"Invalid account ID passed");
-    }
-}
+//         require!(
+//             catch_contract_id == env::current_account_id().as_str(),
+//             "Invalid account ID passed"
+//         );
+//     } else {
+//         env::panic(b"Invalid account ID passed");
+//     }
+// }
 
 
 #[cfg(not(target_arch = "wasm32"))]

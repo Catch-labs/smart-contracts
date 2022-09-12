@@ -64,6 +64,7 @@ pub struct JsonToken {
 #[serde(crate = "near_sdk::serde")]
 pub struct JsonTokenGeneral {
     pub token_id: TokenId,
+    pub copies_minted: u64,
     pub metadata: TokenMetadata,
     pub token_dependency_by_id: Vec<TokenId>,
     pub event_dependency_by_id: Vec<EventId>,
