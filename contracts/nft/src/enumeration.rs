@@ -61,7 +61,7 @@ impl Contract {
             .collect()
     }
 
-    fn nft_token_by_id(&self, token_id: TokenId) -> Option<JsonTokenGeneral> {
+    pub fn nft_token_by_id(&self, token_id: TokenId) -> Option<JsonTokenGeneral> {
         if let Some(token) = self.tokens_by_id.get(&token_id) {
             let metadata = self.token_metadata_by_id.get(&token_id).unwrap();
             Some(JsonTokenGeneral {
