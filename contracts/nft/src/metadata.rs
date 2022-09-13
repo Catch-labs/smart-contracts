@@ -33,6 +33,8 @@ pub struct TokenMetadata {
     pub expires_at: Option<u64>, // Unix epoch in millisecondss
     pub starts_at: Option<u64>,
     pub updated_at: Option<u64>,
+    pub lat: Option<String>,        // exact format of latitude and longitude yet to be decided
+    pub long: Option<String>,
     pub extra: Option<String>, // anything extra the NFT wants to store on-chain. Can be stringified JSON.
     pub reference: Option<String>,
     pub reference_hash: Option<Base64VecU8>,
