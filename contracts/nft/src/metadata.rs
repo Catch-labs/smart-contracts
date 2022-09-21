@@ -33,7 +33,7 @@ pub struct TokenMetadata {
     pub expires_at: Option<u64>, // Unix epoch in millisecondss
     pub starts_at: Option<u64>,
     pub updated_at: Option<u64>,
-    pub lat: Option<String>,        // exact format of latitude and longitude yet to be decided
+    pub lat: Option<String>, // exact format of latitude and longitude yet to be decided
     pub lng: Option<String>,
     pub extra: Option<String>, // anything extra the NFT wants to store on-chain. Can be stringified JSON.
     pub reference: Option<String>,
@@ -64,9 +64,18 @@ pub struct JsonToken {
 
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "near_sdk::serde")]
+pub struct JsonEvent {
+    pub event_id: EventId,
+    pub organiser: AccountId,
+    pub event_tokens_metadata: Vec<JsonTokenGeneral>,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
 pub struct JsonTokenGeneral {
     pub token_id: TokenId,
     pub copies_minted: u64,
+    pub max_copies: u64,
     pub metadata: TokenMetadata,
     pub token_dependency_by_id: Vec<TokenId>,
     pub event_dependency_by_id: Vec<EventId>,

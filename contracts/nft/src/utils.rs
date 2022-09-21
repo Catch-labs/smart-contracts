@@ -134,7 +134,6 @@ pub(crate) fn assert_token_availability(token: &Token) {
 //     }
 // }
 
-
 #[cfg(not(target_arch = "wasm32"))]
 #[cfg(test)]
 pub mod test_utils {
