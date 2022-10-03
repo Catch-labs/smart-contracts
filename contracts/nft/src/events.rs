@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::*;
 
 pub type EventId = String;
@@ -135,5 +137,62 @@ impl Contract {
         }]);
 
         // todo!(); // Refund User if payed extra
+    }
+
+    #[payable]
+    pub fn add_tokens_to_event(&mut self,event_id: EventId,new_token_set: Vec<TokenInfo>){
+
+        let initial_storage = env::storage_usage();
+
+        let mut event = self.events_by_id.get(&event_id).unwrap_or_else(|| env::panic(b"Invalid event id"));
+
+        require!(env::predecessor_account_id() == event.organiser, "Only Owner can add new tokens to the event");
+
+        let mut token_id: TokenId;
+        let mut token: Token;
+        let mut storage_required_for_token_ids = 0;
+
+        for token_info in new_token_set {
+            assert_valid_id(&token_info.token_id);
+
+            
+            token_id = format!("{}.{}", event_id, token_info.token_id); // TokenId = EventId.TokenId
+            
+            event.event_passes.push(token_id.clone());
+
+            token = Token {
+                token_id: token_id.clone(),
+                copies_minted: 0,
+                max_copies: token_info.token_metadata.copies.unwrap_or_else(|| 1),
+                expires_at: token_info.token_metadata.expires_at,
+                token_dependency_by_id: token_info.token_dependency_by_id,
+                event_dependency_by_id: token_info.event_dependency_by_id,
+                account_approval_info_per_owner: LookupMap::new(
+                    StorageKey::ApprovedAccountsPerToken {
+                        token_id_hash: hash_id(&token_id),
+                    }
+                    .try_to_vec()
+                    .unwrap(),
+                ),
+            };
+
+            require!(
+                self.tokens_by_id.insert(&token_id, &token).is_none(),
+                "Token Already exists"
+            );
+
+            self.token_metadata_by_id
+                .insert(&token_id, &token_info.token_metadata);
+
+            storage_required_for_token_ids +=
+                bytes_for_token_or_event_or_account_id(&token_id) * token.max_copies;
+        }
+
+        self.events_by_id.insert(&event_id, &event);
+
+        let total_storage_required =
+            env::storage_usage() - initial_storage + storage_required_for_token_ids;
+
+        refund_deposit(total_storage_required);
     }
 }
