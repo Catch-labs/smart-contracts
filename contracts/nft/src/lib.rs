@@ -57,7 +57,6 @@ const CATCH_MARKETPLACE_CONTRACT_TESTNET: &str = "marketplace.catchlabs.testnet"
 
 const BASE_STORAGE_COST: Balance = 10_000_000_000_000_000_000_000; // this is equal to 0.01 NEAR
 
-
 #[derive(BorshSerialize)]
 pub enum StorageKey {
     TokensPerOwner,

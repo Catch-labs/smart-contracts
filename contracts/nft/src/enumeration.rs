@@ -67,6 +67,7 @@ impl Contract {
             Some(JsonTokenGeneral {
                 token_id,
                 copies_minted: token.copies_minted,
+                max_copies: metadata.copies.unwrap_or_else(|| 1),
                 metadata,
                 token_dependency_by_id: token.token_dependency_by_id,
                 event_dependency_by_id: token.event_dependency_by_id,
@@ -78,19 +79,35 @@ impl Contract {
     }
 
     //Query for all the events that were created on this contract
-    pub fn get_events(
-        &self,
-        from_index: Option<U128>,
-        limit: Option<u64>,
-    ) -> Vec<(EventId, Event)> {
+    pub fn get_events(&self, from_index: Option<U128>, limit: Option<u64>) -> Vec<JsonEvent> {
         let start = u128::from(from_index.unwrap_or(U128(0)));
 
         self.events_by_id
-            .iter()
+            .keys()
             .skip(start as usize)
             .take(limit.unwrap_or(50) as usize)
-            .map(|a| a)
+            .map(|event_id| self.get_event_by_id(event_id.clone()).unwrap())
             .collect()
+    }
+
+    //reutrns all data related to a event
+    pub fn get_event_by_id(&self, event_id: EventId) -> Option<JsonEvent> {
+        if let Some(event) = self.events_by_id.get(&event_id) {
+            let event_tokens_metadata = event
+                .event_passes
+                .iter()
+                .map(|token_id| self.nft_token_by_id(token_id.clone()).unwrap())
+                .collect();
+            let json_event = JsonEvent {
+                event_id,
+                organiser: event.organiser,
+                event_tokens_metadata,
+            };
+
+            Some(json_event)
+        } else {
+            None
+        }
     }
 
     //Returns paginated view of approved marketplaces
@@ -109,4 +126,3 @@ impl Contract {
             .collect()
     }
 }
-
